@@ -1,4 +1,4 @@
-module github.com/ernoaapa/kubectl-warp
+module github.com/izzatzr/kubectl-warp
 
 go 1.15
 
