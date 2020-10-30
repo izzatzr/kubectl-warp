@@ -11,7 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/typed/core/v1"
+	v1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	watchtools "k8s.io/client-go/tools/watch"
@@ -47,7 +47,7 @@ func (c *Client) findPodByName(namespace, name string) (*apiv1.Pod, error) {
 		return &apiv1.Pod{}, err
 	}
 
-	list, err := client.List(metav1.ListOptions{})
+	list, err := client.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return &apiv1.Pod{}, err
 	}
@@ -70,7 +70,7 @@ func (c *Client) CreatePod(namespace, name, image string, cmd []string, workDir 
 		return nil, err
 	}
 
-	return client.Create(createPodManifest(name, image, cmd, workDir, tty, stdin, scvAccName, nodeSelectors))
+	return client.Create(context.TODO(), createPodManifest(name, image, cmd, workDir, tty, stdin, scvAccName, nodeSelectors), metav1.CreateOptions{})
 }
 
 // WaitForPod watches the given pod until the exitCondition is true
@@ -80,7 +80,7 @@ func (c *Client) WaitForPod(namespace, name string, exitCondition watchtools.Con
 		return nil, err
 	}
 
-	w, err := client.Watch(metav1.SingleObject(metav1.ObjectMeta{Name: name}))
+	w, err := client.Watch(context.TODO(), metav1.SingleObject(metav1.ObjectMeta{Name: name}))
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +208,7 @@ func (c *Client) createSSHSecret(namespace, name string, publicKey []byte) error
 		return err
 	}
 
-	_, err = clientset.CoreV1().Secrets(namespace).Create(createSecretManifest(name, publicKey))
+	_, err = clientset.CoreV1().Secrets(namespace).Create(context.TODO(), createSecretManifest(name, publicKey), metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (c *Client) deleteSSHSecret(namespace, name string) error {
 		return err
 	}
 
-	return clientset.CoreV1().Secrets(namespace).Delete(name, &metav1.DeleteOptions{})
+	return clientset.CoreV1().Secrets(namespace).Delete(context.TODO(), name, metav1.DeleteOptions{})
 }
 
 func (c *Client) DeletePod(namespace, name string) error {
@@ -231,7 +231,7 @@ func (c *Client) DeletePod(namespace, name string) error {
 		return err
 	}
 
-	return client.Delete(name, metav1.NewDeleteOptions(int64(-1)))
+	return client.Delete(context.TODO(), name, metav1.DeleteOptions{})
 }
 
 func (c *Client) GetLogs(namespace, name, containerName string) (*rest.Request, error) {

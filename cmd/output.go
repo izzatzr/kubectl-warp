@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"io"
 
 	"github.com/ernoaapa/kubectl-warp/pkg/kubectl"
@@ -13,7 +14,7 @@ func logOutput(client *kubectl.Client, namespace, pod, containerName string, std
 		return err
 	}
 
-	readCloser, err := request.Stream()
+	readCloser, err := request.Stream(context.TODO())
 	if err != nil {
 		return err
 	}
